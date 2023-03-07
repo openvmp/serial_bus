@@ -16,15 +16,15 @@ namespace serial_bus {
 RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
 
-  RCLCPP_DEBUG(node_->get_logger(),
-               "serial_bus::RemoteInterface::RemoteInterface(): Connecting to the "
-               "remote interface: %s",
-               prefix.c_str());
+  RCLCPP_DEBUG(
+      node_->get_logger(),
+      "serial_bus::RemoteInterface::RemoteInterface(): Connecting to the "
+      "remote interface: %s",
+      prefix.c_str());
 
-  clnt_query =
-      node->create_client<serial_bus::srv::Query>(
-          prefix + SERIAL_BUS_SERVICE_QUERY,
-          ::rmw_qos_profile_default, callback_group_);
+  clnt_query = node->create_client<serial_bus::srv::Query>(
+      prefix + SERIAL_BUS_SERVICE_QUERY, ::rmw_qos_profile_default,
+      callback_group_);
 
   clnt_query->wait_for_service();
 
@@ -43,7 +43,7 @@ std::string RemoteInterface::query(uint8_t expected_response_len,
   auto f = clnt_query->async_send_request(req);
   f.wait();
   RCLCPP_DEBUG(node_->get_logger(),
-               "RemoteInterface::holding_register_read(): response received");
+               "RemoteInterface::query(): response received");
   *resp = *f.get();
 
   return std::string(resp->response.begin(), resp->response.end());

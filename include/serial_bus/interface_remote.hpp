@@ -13,12 +13,12 @@
 #include <memory>
 #include <string>
 
-#include "serial_bus/interface.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "serial_bus/interface.hpp"
 
 namespace serial_bus {
 
-class RemoteInterface : public Interface {
+class RemoteInterface final : public Interface {
  public:
   RemoteInterface(rclcpp::Node *node);
   virtual ~RemoteInterface() {}
@@ -30,6 +30,6 @@ class RemoteInterface : public Interface {
   rclcpp::Client<serial_bus::srv::Query>::SharedPtr clnt_query;
 };
 
-}  // namespace modbus
+}  // namespace serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_INTERFACE_REMOTE_H
