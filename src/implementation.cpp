@@ -16,23 +16,27 @@ using namespace std::chrono_literals;
 
 namespace serial_bus {
 
-Implementation::Implementation(rclcpp::Node *node)
-    : Interface(node) {
+Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
 
   stats_requests_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_REQUESTS, 10);
+      prefix + SERIAL_BUS_TOPIC_REQUESTS,
+      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
+          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
   stats_responses_succeeded_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED, 10);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED,
+      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
+          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
   stats_responses_failed_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED, 10);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED,
+      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
+          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
 
-  srv_query_ =
-      node_->create_service<serial_bus::srv::Query>(
-          prefix + SERIAL_BUS_SERVICE_QUERY,
-          std::bind(&Implementation::query_handler_, this,
-                    std::placeholders::_1, std::placeholders::_2),
-          ::rmw_qos_profile_default, callback_group_);
+  srv_query_ = node_->create_service<serial_bus::srv::Query>(
+      prefix + SERIAL_BUS_SERVICE_QUERY,
+      std::bind(&Implementation::query_handler_, this, std::placeholders::_1,
+                std::placeholders::_2),
+      ::rmw_qos_profile_default, callback_group_);
   prov_ = serial::Factory::New(node);
   prov_->register_input_cb(&Implementation::input_cb_, this);
 }
@@ -59,11 +63,11 @@ void Implementation::input_cb_real_(const std::string &msg) {
   if (input_promises_.size() < 1) {
     // No one is waiting for anything.
     RCLCPP_DEBUG(node_->get_logger(), "Discarded unwanted data: %s",
-               (serial::utils::bin2hex(msg)).c_str());
+                 (serial::utils::bin2hex(msg)).c_str());
     input_promises_mutex_.unlock();
     return;
   }
-  
+
   auto first_promise = input_promises_.begin();
   auto expected_len = first_promise->expected_response_len;
   if (input_queue_.length() < expected_len) {
@@ -77,6 +81,8 @@ void Implementation::input_cb_real_(const std::string &msg) {
   first_promise->promise.set_value(response);
   input_queue_.erase(0, expected_len);
   input_promises_.erase(first_promise);
+
+  SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_succeeded_, 1);
 
   // If there is anyone else in line
   // then send out their request
@@ -99,7 +105,6 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
   input_promises_.emplace_back(expected_response_len, output);
   std::future<std::string> f = input_promises_.back().promise.get_future();
   input_promises_mutex_.unlock();
-
 
   // Make sure to write the request if the promise is the first one in line
   if (do_send) {
@@ -136,8 +141,8 @@ rclcpp::FutureReturnCode Implementation::query_handler_(
     const std::shared_ptr<serial_bus::srv::Query::Request> request,
     std::shared_ptr<serial_bus::srv::Query::Response> response) {
   auto result = send_request_(
-    request->expected_response_len,
-    std::string(request->request.begin(), request->request.end()));
+      request->expected_response_len,
+      std::string(request->request.begin(), request->request.end()));
   if (result.length() != request->expected_response_len) {
     return rclcpp::FutureReturnCode::INTERRUPTED;
   }

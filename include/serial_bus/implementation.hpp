@@ -14,20 +14,20 @@
 #include <memory>
 #include <string>
 
-#include "serial_bus/interface.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "serial/interface.hpp"
+#include "serial_bus/interface.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 
 #define SERIAL_BUS_PUBLISH(type, name, value) \
-  {                                       \
-    std_msgs::msg::type msg;              \
-    msg.data = value;                     \
-    name->publish(msg);                   \
+  {                                           \
+    std_msgs::msg::type msg;                  \
+    msg.data = value;                         \
+    name->publish(msg);                       \
   }
 #define SERIAL_BUS_PUBLISH_INC(type, name, inc)   \
-  {                                           \
-    name##_value_ += inc;                     \
+  {                                               \
+    name##_value_ += inc;                         \
     SERIAL_BUS_PUBLISH(type, name, name##_value_) \
   }
 
@@ -40,7 +40,8 @@ class Implementation : public Interface {
 
  protected:
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr stats_requests_;
-  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr stats_responses_succeeded_;
+  rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr
+      stats_responses_succeeded_;
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr stats_responses_failed_;
 
   virtual std::string query(uint8_t expected_response_len,
@@ -66,7 +67,7 @@ class Implementation : public Interface {
 
   // published values
   uint32_t stats_requests__value_;
-  uint32_t stats_responses_suceeded__value_;
+  uint32_t stats_responses_succeeded__value_;
   uint32_t stats_responses_failed__value_;
 
   // input_cb is a static method to receive callbacks from the serial module.
@@ -77,8 +78,7 @@ class Implementation : public Interface {
   std::string send_request_(uint8_t expected_response_len,
                             const std::string &output);
 
-  rclcpp::Service<serial_bus::srv::Query>::SharedPtr
-      srv_query_;
+  rclcpp::Service<serial_bus::srv::Query>::SharedPtr srv_query_;
   rclcpp::FutureReturnCode query_handler_(
       const std::shared_ptr<serial_bus::srv::Query::Request> request,
       std::shared_ptr<serial_bus::srv::Query::Response> response);
