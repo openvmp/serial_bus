@@ -19,18 +19,26 @@ namespace serial_bus {
 Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
 
+  rmw_qos_profile_t rmw = {
+      .history = rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+      .depth = 1,
+      .reliability =
+          rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+      .durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      .deadline = {0, 50000000},
+      .lifespan = {0, 50000000},
+      .liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,
+      .liveliness_lease_duration = {0, 0},
+      .avoid_ros_namespace_conventions = false,
+  };
+  auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw), rmw);
+
   stats_requests_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_REQUESTS,
-      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
-          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
+      prefix + SERIAL_BUS_TOPIC_REQUESTS, qos);
   stats_responses_succeeded_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED,
-      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
-          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED, qos);
   stats_responses_failed_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED,
-      rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT |
-          rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED, qos);
 
   srv_query_ = node_->create_service<serial_bus::srv::Query>(
       prefix + SERIAL_BUS_SERVICE_QUERY,
