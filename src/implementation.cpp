@@ -14,6 +14,11 @@
 
 using namespace std::chrono_literals;
 
+#ifndef DEBUG
+#undef RCLCPP_DEBUG
+#define RCLCPP_DEBUG(...)
+#endif
+
 namespace serial_bus {
 
 Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
