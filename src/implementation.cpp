@@ -64,44 +64,52 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
 }
 
 void Implementation::input_cb_real_(const std::string &msg) {
-  input_promises_mutex_.lock();
-
-  // TODO(clairbee): optimize it to avoid excessive copying
-  input_queue_ += msg;
   RCLCPP_DEBUG(node_->get_logger(), "Received data: %s",
                (serial::utils::bin2hex(msg)).c_str());
+
+  input_promises_mutex_.lock();
+  input_queue_ += msg;  // TODO(clairbee): optimize it to reduce extra copying
   RCLCPP_DEBUG(node_->get_logger(), "Queued data: %s",
                (serial::utils::bin2hex(input_queue_)).c_str());
 
-  if (input_promises_.size() < 1) {
-    // No one is waiting for anything.
-    RCLCPP_DEBUG(node_->get_logger(), "Discarded unwanted data: %s",
-                 (serial::utils::bin2hex(msg)).c_str());
-    input_promises_mutex_.unlock();
-    return;
-  }
+  do {
+    if (input_promises_.size() < 1) {
+      // No one is waiting for anything.
+      break;
+    }
 
-  auto first_promise = input_promises_.begin();
-  auto expected_len = first_promise->expected_response_len;
-  if (input_queue_.length() < expected_len) {
-    // there is not enough data yet
-    input_promises_mutex_.unlock();
-    SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_failed_, 1);
-    return;
-  }
+    // See how much data the requestor wanted
+    auto first_promise = input_promises_.begin();
+    auto expected_len = (*first_promise)->expected_response_len;
+    if (input_queue_.length() < expected_len) {
+      // there is not enough data yet
+      SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_failed_, 1);
+      input_promises_mutex_.unlock();
+      return;
+    }
 
-  std::string response(&input_queue_[0], expected_len);
-  first_promise->promise.set_value(response);
-  input_queue_.erase(0, expected_len);
-  input_promises_.erase(first_promise);
+    // Extract just the right amount of data
+    std::string response(&input_queue_[0], expected_len);
+    (*first_promise)->promise.set_value(response);
+    input_queue_.erase(0, expected_len);
 
-  SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_succeeded_, 1);
+    // Remove the requestor from the queue
+    input_promises_.erase(first_promise);
+    SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_succeeded_, 1);
 
-  // If there is anyone else in line
-  // then send out their request
-  if (input_promises_.size() > 0) {
-    first_promise = input_promises_.begin();
-    prov_->output(first_promise->output);
+    // If there is anyone else waiting in line
+    // then send out their request
+    if (input_promises_.size() > 0) {
+      first_promise = input_promises_.begin();
+      prov_->output((*first_promise)->output);
+    }
+  } while (false);
+
+  // Whatever is left is something no one asked for
+  if (input_queue_.length() > 0) {
+    RCLCPP_DEBUG(node_->get_logger(), "Discarding unwanted data: %s",
+                 (serial::utils::bin2hex(input_queue_)).c_str());
+    input_queue_ = "";
   }
 
   input_promises_mutex_.unlock();
@@ -115,8 +123,10 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
   if (input_promises_.size() == 0) {
     do_send = true;
   }
-  input_promises_.emplace_back(expected_response_len, output);
-  std::future<std::string> f = input_promises_.back().promise.get_future();
+  auto input_promise = std::make_shared<Promise>(expected_response_len, output);
+  input_promise->start = std::chrono::steady_clock::now();
+  input_promises_.push_back(input_promise);
+  std::future<std::string> f = input_promise->promise.get_future();
   input_promises_mutex_.unlock();
 
   // Make sure to write the request if the promise is the first one in line
@@ -126,13 +136,35 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
 
   SERIAL_BUS_PUBLISH_INC(UInt32, stats_requests_, 1);
 
-  // TODO(clairbee): implement a timeout here
-  f.wait();
+#define INPUT_QUEUE_TIMEOUT_MS 17
+  auto status = f.wait_for(std::chrono::milliseconds(INPUT_QUEUE_TIMEOUT_MS));
+  if (status == std::future_status::timeout) {
+    RCLCPP_ERROR(node_->get_logger(),
+                 "serial_bus: send_request_(): future timed out");
+    input_promises_mutex_.lock();
+    auto p = input_promises_.begin();
+    for (; p != input_promises_.end(); p++) {
+      if ((*p) == input_promise) {
+        // remove ourselves from the list of waiters
+        input_promises_.erase(p);
+        break;
+      }
+    }
+    input_promises_mutex_.unlock();
+    return "";
+  }
   RCLCPP_DEBUG(node_->get_logger(), "Future arrived");
 
   std::string result = f.get();
-  RCLCPP_DEBUG(node_->get_logger(), "Received serial bus response: %s",
-               (serial::utils::bin2hex(result)).c_str());
+
+#ifdef DEBUG
+  auto end = std::chrono::steady_clock::now();
+#endif
+  RCLCPP_DEBUG(node_->get_logger(), "Received serial bus response: %s in %dms",
+               (serial::utils::bin2hex(result)).c_str(),
+               (int)(std::chrono::duration_cast<std::chrono::milliseconds>(
+                         end - input_promise->start)
+                         .count()));
 
   return result;
 }

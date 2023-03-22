@@ -57,9 +57,10 @@ class Implementation : public Interface {
     uint8_t expected_response_len;
     std::string output;
     std::promise<std::string> promise;
+    std::chrono::steady_clock::time_point start;
   };
   // input_promises_ contain everyone waiting for their lef_id to repspond
-  std::vector<Promise> input_promises_;
+  std::vector<std::shared_ptr<Promise>> input_promises_;
   // input_queue_ accumulates data from previous read()s until the entire frame
   // arrives
   std::string input_queue_;
