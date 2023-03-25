@@ -7,11 +7,11 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "serial_bus/interface_remote.hpp"
+#include "ros2_serial_bus/interface_remote.hpp"
 
 #include <functional>
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
@@ -22,7 +22,7 @@ RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
       "remote interface: %s",
       prefix.c_str());
 
-  clnt_query = node->create_client<serial_bus::srv::Query>(
+  clnt_query = node->create_client<srv::Query>(
       prefix + SERIAL_BUS_SERVICE_QUERY, ::rmw_qos_profile_default,
       callback_group_);
 
@@ -34,8 +34,8 @@ RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
 
 std::string RemoteInterface::query(uint8_t expected_response_len,
                                    const std::string &request) {
-  auto req = std::make_shared<serial_bus::srv::Query::Request>();
-  auto resp = std::make_shared<serial_bus::srv::Query::Response>();
+  auto req = std::make_shared<srv::Query::Request>();
+  auto resp = std::make_shared<srv::Query::Response>();
 
   req->expected_response_len = expected_response_len;
   req->request = std::vector<uint8_t>(request.begin(), request.end());
@@ -49,4 +49,4 @@ std::string RemoteInterface::query(uint8_t expected_response_len,
   return std::string(resp->response.begin(), resp->response.end());
 }
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus

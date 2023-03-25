@@ -10,7 +10,7 @@
 #ifndef OPENVMP_SERIAL_BUS_INTERFACE_H
 #define OPENVMP_SERIAL_BUS_INTERFACE_H
 
-#include "serial_bus/srv/query.hpp"
+#include "ros2_serial_bus/srv/query.hpp"
 #include "rclcpp/callback_group.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -19,7 +19,7 @@
 #define SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED "/responses_suceeded"
 #define SERIAL_BUS_TOPIC_RESPONSES_FAILED "/responses_failed"
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 class Interface {
  public:
@@ -39,6 +39,6 @@ class Interface {
   rclcpp::Parameter interface_prefix_;
 };
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_INTERFACE_H

@@ -7,10 +7,10 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "serial_bus/implementation.hpp"
+#include "ros2_serial_bus/implementation.hpp"
 
-#include "serial/factory.hpp"
-#include "serial/utils.hpp"
+#include "ros2_serial/factory.hpp"
+#include "ros2_serial/utils.hpp"
 
 using namespace std::chrono_literals;
 
@@ -19,7 +19,7 @@ using namespace std::chrono_literals;
 #define RCLCPP_DEBUG(...)
 #endif
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
@@ -45,12 +45,12 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   stats_responses_failed_ = node->create_publisher<std_msgs::msg::UInt32>(
       prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED, qos);
 
-  srv_query_ = node_->create_service<serial_bus::srv::Query>(
+  srv_query_ = node_->create_service<srv::Query>(
       prefix + SERIAL_BUS_SERVICE_QUERY,
       std::bind(&Implementation::query_handler_, this, std::placeholders::_1,
                 std::placeholders::_2),
       ::rmw_qos_profile_default, callback_group_);
-  prov_ = serial::Factory::New(node);
+  prov_ = ros2_serial::Factory::New(node);
   prov_->register_input_cb(&Implementation::input_cb_, this);
 }
 
@@ -65,12 +65,12 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
 
 void Implementation::input_cb_real_(const std::string &msg) {
   RCLCPP_DEBUG(node_->get_logger(), "Received data: %s",
-               (serial::utils::bin2hex(msg)).c_str());
+               (ros2_serial::utils::bin2hex(msg)).c_str());
 
   input_promises_mutex_.lock();
   input_queue_ += msg;  // TODO(clairbee): optimize it to reduce extra copying
   RCLCPP_DEBUG(node_->get_logger(), "Queued data: %s",
-               (serial::utils::bin2hex(input_queue_)).c_str());
+               (ros2_serial::utils::bin2hex(input_queue_)).c_str());
 
   do {
     if (input_promises_.size() < 1) {
@@ -108,7 +108,7 @@ void Implementation::input_cb_real_(const std::string &msg) {
   // Whatever is left is something no one asked for
   if (input_queue_.length() > 0) {
     RCLCPP_DEBUG(node_->get_logger(), "Discarding unwanted data: %s",
-                 (serial::utils::bin2hex(input_queue_)).c_str());
+                 (ros2_serial::utils::bin2hex(input_queue_)).c_str());
     input_queue_ = "";
   }
 
@@ -161,7 +161,7 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
   auto end = std::chrono::steady_clock::now();
 #endif
   RCLCPP_DEBUG(node_->get_logger(), "Received serial bus response: %s in %dms",
-               (serial::utils::bin2hex(result)).c_str(),
+               (ros2_serial::utils::bin2hex(result)).c_str(),
                (int)(std::chrono::duration_cast<std::chrono::milliseconds>(
                          end - input_promise->start)
                          .count()));
@@ -171,8 +171,8 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
 
 std::string Implementation::query(uint8_t expected_response_len,
                                   const std::string &request) {
-  auto req = std::make_shared<serial_bus::srv::Query::Request>();
-  auto resp = std::make_shared<serial_bus::srv::Query::Response>();
+  auto req = std::make_shared<srv::Query::Request>();
+  auto resp = std::make_shared<srv::Query::Response>();
 
   req->expected_response_len = expected_response_len;
   req->request = std::vector<uint8_t>(request.begin(), request.end());
@@ -183,8 +183,8 @@ std::string Implementation::query(uint8_t expected_response_len,
 }
 
 rclcpp::FutureReturnCode Implementation::query_handler_(
-    const std::shared_ptr<serial_bus::srv::Query::Request> request,
-    std::shared_ptr<serial_bus::srv::Query::Response> response) {
+    const std::shared_ptr<srv::Query::Request> request,
+    std::shared_ptr<srv::Query::Response> response) {
   auto result = send_request_(
       request->expected_response_len,
       std::string(request->request.begin(), request->request.end()));
@@ -195,4 +195,4 @@ rclcpp::FutureReturnCode Implementation::query_handler_(
   return rclcpp::FutureReturnCode::SUCCESS;
 }
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus

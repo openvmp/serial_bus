@@ -12,16 +12,16 @@
 
 #include <memory>
 
-#include "serial_bus/interface.hpp"
+#include "ros2_serial_bus/interface.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 class Factory {
  public:
   static std::shared_ptr<Interface> New(rclcpp::Node *node);
 };
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_FACTORY_H

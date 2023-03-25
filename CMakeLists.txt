@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(serial_bus)
+project(ros2_serial_bus)
 
 # Compiler settings
 if(NOT CMAKE_CXX_STANDARD)
@@ -15,7 +15,7 @@ add_compile_options(-fPIC)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(serial REQUIRED)
+find_package(ros2_serial REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # Logic shared by all targets
@@ -27,7 +27,7 @@ rosidl_get_typesupport_target(cpp_typesupport_target
 
 include_directories(
   include
-  ${serial_INCLUDE_DIRS}
+  ${ros2_serial_INCLUDE_DIRS}
 )
 
 set(project_SOURCE_FILES
@@ -39,14 +39,14 @@ set(project_SOURCE_FILES
 
 set(project_LIBRARIES
   ${rclcpp_LIBRARIES}
-  ${serial_LIBRARIES}
-  ${serial_native_LIBRARIES}
+  ${ros2_serial_LIBRARIES}
+  ${ros2_serial_native_LIBRARIES}
 )
 
 set(project_DEPENDENCIES
   rclcpp
   std_msgs
-  serial
+  ros2_serial
 )
 
 # Executable target

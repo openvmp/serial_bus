@@ -15,8 +15,8 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "serial/interface.hpp"
-#include "serial_bus/interface.hpp"
+#include "ros2_serial/interface.hpp"
+#include "ros2_serial_bus/interface.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 
 #define SERIAL_BUS_PUBLISH(type, name, value) \
@@ -31,7 +31,7 @@
     SERIAL_BUS_PUBLISH(type, name, name##_value_) \
   }
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 class Implementation : public Interface {
  public:
@@ -48,7 +48,7 @@ class Implementation : public Interface {
                             const std::string &request) override;
 
  private:
-  std::shared_ptr<serial::Interface> prov_;
+  std::shared_ptr<ros2_serial::Interface> prov_;
 
   class Promise {
    public:
@@ -79,12 +79,12 @@ class Implementation : public Interface {
   std::string send_request_(uint8_t expected_response_len,
                             const std::string &output);
 
-  rclcpp::Service<serial_bus::srv::Query>::SharedPtr srv_query_;
+  rclcpp::Service<srv::Query>::SharedPtr srv_query_;
   rclcpp::FutureReturnCode query_handler_(
-      const std::shared_ptr<serial_bus::srv::Query::Request> request,
-      std::shared_ptr<serial_bus::srv::Query::Response> response);
+      const std::shared_ptr<srv::Query::Request> request,
+      std::shared_ptr<srv::Query::Response> response);
 };
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_IMPLEMENTATION_H

@@ -7,12 +7,12 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "serial_bus/node.hpp"
+#include "ros2_serial_bus/node.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<serial_bus::Node>();
+  auto node = std::make_shared<ros2_serial_bus::Node>();
 
   rclcpp::executors::MultiThreadedExecutor exec;
   exec.add_node(node);

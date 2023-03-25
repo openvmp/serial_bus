@@ -7,14 +7,14 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "serial_bus/interface.hpp"
+#include "ros2_serial_bus/interface.hpp"
 
 #include <functional>
 
-#include "serial_bus/srv/query.hpp"
+#include "ros2_serial_bus/srv/query.hpp"
 
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 Interface::Interface(rclcpp::Node *node) : node_{node} {
   callback_group_ =
@@ -34,4 +34,4 @@ std::string Interface::get_prefix_() {
 }
 
 
-}  // namespace modbus
+}  // namespace ros2_serial_bus

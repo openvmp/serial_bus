@@ -7,12 +7,12 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "serial_bus/node.hpp"
+#include "ros2_serial_bus/node.hpp"
 
-namespace serial_bus {
+namespace ros2_serial_bus {
 
 Node::Node() : rclcpp::Node::Node("serial_bus") {
   impl_ = std::make_shared<Implementation>(this);
 }
 
-}  // namespace serial_bus
+}  // namespace ros2_serial_bus
