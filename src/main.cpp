@@ -7,8 +7,8 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "ros2_serial_bus/node.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "ros2_serial_bus/node.hpp"
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);

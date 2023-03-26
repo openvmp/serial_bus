@@ -11,7 +11,7 @@ This package is an implementation of serial bus (like RS-485).
 
 The core feature is multiplexing of request/response pairs with the assumption
 that the responses could not be distinguished between themselves (for example,
-using responder's leaf identifiers like it is done in the ModBus protocol).
+using responder's leaf identifiers like it's done in the ModBus protocol).
 
 ### Examples
 

@@ -13,8 +13,8 @@
 #include <memory>
 #include <string>
 
-#include "ros2_serial_bus/implementation.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "ros2_serial_bus/implementation.hpp"
 
 namespace ros2_serial_bus {
 

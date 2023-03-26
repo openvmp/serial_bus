@@ -10,9 +10,9 @@
 #ifndef OPENVMP_SERIAL_BUS_INTERFACE_H
 #define OPENVMP_SERIAL_BUS_INTERFACE_H
 
-#include "ros2_serial_bus/srv/query.hpp"
 #include "rclcpp/callback_group.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "ros2_serial_bus/srv/query.hpp"
 
 #define SERIAL_BUS_SERVICE_QUERY "/query"
 #define SERIAL_BUS_TOPIC_REQUESTS "/requests"

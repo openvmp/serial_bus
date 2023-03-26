@@ -12,8 +12,8 @@
 
 #include <memory>
 
-#include "ros2_serial_bus/interface.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "ros2_serial_bus/interface.hpp"
 
 namespace ros2_serial_bus {
 
