@@ -35,7 +35,6 @@ RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
 std::string RemoteInterface::query(uint8_t expected_response_len,
                                    const std::string &request) {
   auto req = std::make_shared<srv::Query::Request>();
-  auto resp = std::make_shared<srv::Query::Response>();
 
   req->expected_response_len = expected_response_len;
   req->request = std::vector<uint8_t>(request.begin(), request.end());
@@ -44,7 +43,7 @@ std::string RemoteInterface::query(uint8_t expected_response_len,
   f.wait();
   RCLCPP_DEBUG(node_->get_logger(),
                "RemoteInterface::query(): response received");
-  *resp = *f.get();
+  auto resp = f.get();
 
   return std::string(resp->response.begin(), resp->response.end());
 }

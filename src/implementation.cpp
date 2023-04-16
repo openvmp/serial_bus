@@ -50,31 +50,30 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
       std::bind(&Implementation::query_handler_, this, std::placeholders::_1,
                 std::placeholders::_2),
       ::rmw_qos_profile_default, callback_group_);
+
   prov_ = ros2_serial::Factory::New(node);
   prov_->register_input_cb(&Implementation::input_cb_, this);
 }
 
 /* static */ void Implementation::input_cb_(const std::string &msg,
                                             void *user_data) {
-  (void)msg;
-  (void)user_data;
-
   Implementation *that = (Implementation *)user_data;
   that->input_cb_real_(msg);
 }
 
 void Implementation::input_cb_real_(const std::string &msg) {
   RCLCPP_DEBUG(node_->get_logger(), "Received data: %s",
-               (ros2_serial::utils::bin2hex(msg)).c_str());
+               ros2_serial::utils::bin2hex(msg).c_str());
 
   input_promises_mutex_.lock();
   input_queue_ += msg;  // TODO(clairbee): optimize it to reduce extra copying
   RCLCPP_DEBUG(node_->get_logger(), "Queued data: %s",
-               (ros2_serial::utils::bin2hex(input_queue_)).c_str());
+               ros2_serial::utils::bin2hex(input_queue_).c_str());
 
   do {
     if (input_promises_.size() < 1) {
       // No one is waiting for anything.
+      RCLCPP_DEBUG(node_->get_logger(), "No one is waiting for anything");
       break;
     }
 
@@ -83,6 +82,7 @@ void Implementation::input_cb_real_(const std::string &msg) {
     auto expected_len = (*first_promise)->expected_response_len;
     if (input_queue_.length() < expected_len) {
       // there is not enough data yet
+      RCLCPP_DEBUG(node_->get_logger(), "Not enough data yet");
       SERIAL_BUS_PUBLISH_INC(UInt32, stats_responses_failed_, 1);
       input_promises_mutex_.unlock();
       return;
@@ -136,7 +136,7 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
 
   SERIAL_BUS_PUBLISH_INC(UInt32, stats_requests_, 1);
 
-#define INPUT_QUEUE_TIMEOUT_MS 17
+#define INPUT_QUEUE_TIMEOUT_MS 50
   auto status = f.wait_for(std::chrono::milliseconds(INPUT_QUEUE_TIMEOUT_MS));
   if (status == std::future_status::timeout) {
     RCLCPP_ERROR(node_->get_logger(),
@@ -178,6 +178,7 @@ std::string Implementation::query(uint8_t expected_response_len,
   req->request = std::vector<uint8_t>(request.begin(), request.end());
 
   query_handler_(req, resp);
+  RCLCPP_DEBUG(node_->get_logger(), "Returned to query");
 
   return std::string(resp->response.begin(), resp->response.end());
 }
@@ -188,6 +189,7 @@ rclcpp::FutureReturnCode Implementation::query_handler_(
   auto result = send_request_(
       request->expected_response_len,
       std::string(request->request.begin(), request->request.end()));
+  RCLCPP_DEBUG(node_->get_logger(), "Returned to query_handler_");
   if (result.length() != request->expected_response_len) {
     return rclcpp::FutureReturnCode::INTERRUPTED;
   }
