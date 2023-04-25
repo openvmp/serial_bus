@@ -16,7 +16,12 @@ using namespace std::chrono_literals;
 
 #ifndef DEBUG
 #undef RCLCPP_DEBUG
+#if 1
 #define RCLCPP_DEBUG(...)
+#else
+#define RCLCPP_DEBUG RCLCPP_INFO
+#define DEBUG 1
+#endif
 #endif
 
 namespace ros2_serial_bus {
@@ -24,26 +29,12 @@ namespace ros2_serial_bus {
 Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
 
-  rmw_qos_profile_t rmw = {
-      .history = rmw_qos_history_policy_t::RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-      .depth = 1,
-      .reliability =
-          rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-      .durability = RMW_QOS_POLICY_DURABILITY_VOLATILE,
-      .deadline = {0, 50000000},
-      .lifespan = {0, 50000000},
-      .liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,
-      .liveliness_lease_duration = {0, 0},
-      .avoid_ros_namespace_conventions = false,
-  };
-  auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw), rmw);
-
   stats_requests_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_REQUESTS, qos);
+      prefix + SERIAL_BUS_TOPIC_REQUESTS, 10);
   stats_responses_succeeded_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED, qos);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED, 10);
   stats_responses_failed_ = node->create_publisher<std_msgs::msg::UInt32>(
-      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED, qos);
+      prefix + SERIAL_BUS_TOPIC_RESPONSES_FAILED, 10);
 
   srv_query_ = node_->create_service<srv::Query>(
       prefix + SERIAL_BUS_SERVICE_QUERY,
