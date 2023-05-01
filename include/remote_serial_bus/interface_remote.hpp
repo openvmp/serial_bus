@@ -14,9 +14,9 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ros2_serial_bus/interface.hpp"
+#include "remote_serial_bus/interface.hpp"
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 class RemoteInterface final : public Interface {
  public:
@@ -30,6 +30,6 @@ class RemoteInterface final : public Interface {
   rclcpp::Client<srv::Query>::SharedPtr clnt_query;
 };
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_INTERFACE_REMOTE_H

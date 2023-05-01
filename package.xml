@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>ros2_serial_bus</name>
-  <version>0.0.1</version>
-  <description>Request/response multiplexor for serial buses like RS-485</description>
+  <name>remote_serial_bus</name>
+  <version>1.0.0</version>
+  <description>Request/response multiplexor for serial buses like RS485</description>
   <maintainer email="openvmp@proton.me">Roman Kuzmenko</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
-  <depend>ros2_serial</depend>
+  <depend>remote_serial</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

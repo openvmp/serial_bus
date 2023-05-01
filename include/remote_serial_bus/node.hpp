@@ -14,9 +14,9 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ros2_serial_bus/implementation.hpp"
+#include "remote_serial_bus/implementation.hpp"
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 class Node : public rclcpp::Node {
  public:
@@ -26,6 +26,6 @@ class Node : public rclcpp::Node {
   std::shared_ptr<Implementation> impl_;
 };
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_RTU_NODE_H

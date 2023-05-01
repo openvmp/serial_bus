@@ -15,8 +15,8 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ros2_serial/interface.hpp"
-#include "ros2_serial_bus/interface.hpp"
+#include "remote_serial/interface.hpp"
+#include "remote_serial_bus/interface.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 
 #define SERIAL_BUS_PUBLISH(type, name, value) \
@@ -31,7 +31,7 @@
     SERIAL_BUS_PUBLISH(type, name, name##_value_) \
   }
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 class Implementation : public Interface {
  public:
@@ -48,7 +48,7 @@ class Implementation : public Interface {
                             const std::string &request) override;
 
  private:
-  std::shared_ptr<ros2_serial::Interface> prov_;
+  std::shared_ptr<remote_serial::Interface> prov_;
 
   class Promise {
    public:
@@ -85,6 +85,6 @@ class Implementation : public Interface {
       std::shared_ptr<srv::Query::Response> response);
 };
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_IMPLEMENTATION_H

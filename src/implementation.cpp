@@ -7,10 +7,10 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "ros2_serial_bus/implementation.hpp"
+#include "remote_serial_bus/implementation.hpp"
 
-#include "ros2_serial/factory.hpp"
-#include "ros2_serial/utils.hpp"
+#include "remote_serial/factory.hpp"
+#include "remote_serial/utils.hpp"
 
 using namespace std::chrono_literals;
 
@@ -24,7 +24,7 @@ using namespace std::chrono_literals;
 #endif
 #endif
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
@@ -42,7 +42,7 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
                 std::placeholders::_2),
       ::rmw_qos_profile_default, callback_group_);
 
-  prov_ = ros2_serial::Factory::New(node);
+  prov_ = remote_serial::Factory::New(node);
   prov_->register_input_cb(&Implementation::input_cb_, this);
 }
 
@@ -54,12 +54,12 @@ Implementation::Implementation(rclcpp::Node *node) : Interface(node) {
 
 void Implementation::input_cb_real_(const std::string &msg) {
   RCLCPP_DEBUG(node_->get_logger(), "Received data: %s",
-               ros2_serial::utils::bin2hex(msg).c_str());
+               remote_serial::utils::bin2hex(msg).c_str());
 
   input_promises_mutex_.lock();
   input_queue_ += msg;  // TODO(clairbee): optimize it to reduce extra copying
   RCLCPP_DEBUG(node_->get_logger(), "Queued data: %s",
-               ros2_serial::utils::bin2hex(input_queue_).c_str());
+               remote_serial::utils::bin2hex(input_queue_).c_str());
 
   do {
     if (input_promises_.size() < 1) {
@@ -99,7 +99,7 @@ void Implementation::input_cb_real_(const std::string &msg) {
   // Whatever is left is something no one asked for
   if (input_queue_.length() > 0) {
     RCLCPP_DEBUG(node_->get_logger(), "Discarding unwanted data: %s",
-                 (ros2_serial::utils::bin2hex(input_queue_)).c_str());
+                 (remote_serial::utils::bin2hex(input_queue_)).c_str());
     input_queue_ = "";
   }
 
@@ -152,7 +152,7 @@ std::string Implementation::send_request_(uint8_t expected_response_len,
   auto end = std::chrono::steady_clock::now();
 #endif
   RCLCPP_DEBUG(node_->get_logger(), "Received serial bus response: %s in %dms",
-               (ros2_serial::utils::bin2hex(result)).c_str(),
+               (remote_serial::utils::bin2hex(result)).c_str(),
                (int)(std::chrono::duration_cast<std::chrono::milliseconds>(
                          end - input_promise->start)
                          .count()));
@@ -188,4 +188,4 @@ rclcpp::FutureReturnCode Implementation::query_handler_(
   return rclcpp::FutureReturnCode::SUCCESS;
 }
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus

@@ -8,11 +8,11 @@
  */
 
 #include "rclcpp/rclcpp.hpp"
-#include "ros2_serial_bus/node.hpp"
+#include "remote_serial_bus/node.hpp"
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<ros2_serial_bus::Node>();
+  auto node = std::make_shared<remote_serial_bus::Node>();
 
   rclcpp::executors::MultiThreadedExecutor exec;
   exec.add_node(node);

@@ -12,14 +12,14 @@
 
 #include "rclcpp/callback_group.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "ros2_serial_bus/srv/query.hpp"
+#include "remote_serial_bus/srv/query.hpp"
 
 #define SERIAL_BUS_SERVICE_QUERY "/query"
 #define SERIAL_BUS_TOPIC_REQUESTS "/requests"
 #define SERIAL_BUS_TOPIC_RESPONSES_SUCEEDED "/responses_suceeded"
 #define SERIAL_BUS_TOPIC_RESPONSES_FAILED "/responses_failed"
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 class Interface {
  public:
@@ -39,6 +39,6 @@ class Interface {
   rclcpp::Parameter interface_prefix_;
 };
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus
 
 #endif  // OPENVMP_SERIAL_BUS_INTERFACE_H

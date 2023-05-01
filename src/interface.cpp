@@ -7,13 +7,13 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "ros2_serial_bus/interface.hpp"
+#include "remote_serial_bus/interface.hpp"
 
 #include <functional>
 
-#include "ros2_serial_bus/srv/query.hpp"
+#include "remote_serial_bus/srv/query.hpp"
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 Interface::Interface(rclcpp::Node *node) : node_{node} {
   callback_group_ =
@@ -33,4 +33,4 @@ std::string Interface::get_prefix_() {
   return prefix;
 }
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus

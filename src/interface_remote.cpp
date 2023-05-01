@@ -7,11 +7,11 @@
  * Licensed under Apache License, Version 2.0.
  */
 
-#include "ros2_serial_bus/interface_remote.hpp"
+#include "remote_serial_bus/interface_remote.hpp"
 
 #include <functional>
 
-namespace ros2_serial_bus {
+namespace remote_serial_bus {
 
 RemoteInterface::RemoteInterface(rclcpp::Node *node) : Interface(node) {
   auto prefix = get_prefix_();
@@ -48,4 +48,4 @@ std::string RemoteInterface::query(uint8_t expected_response_len,
   return std::string(resp->response.begin(), resp->response.end());
 }
 
-}  // namespace ros2_serial_bus
+}  // namespace remote_serial_bus
